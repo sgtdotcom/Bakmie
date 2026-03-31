@@ -1,25 +1,32 @@
-script: |
-  set -e
+name: 🚀 Deploy Bakmie POS
 
-  echo "📁 Masuk ke folder project..."
-  cd /home/ubuntu/bakmie-pos
+on:
+  push:
+    branches:
+      - main
 
-  echo "⬇️ Pull kode terbaru dari GitHub..."
-  git pull origin main || git pull origin master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  echo "📦 Install dependencies..."
-  npm install
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-  echo "🧬 Prisma generate..."
-  npx prisma generate
+      - name: 🚀 Deploy ke VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
 
-  echo "🏗️ Build aplikasi..."
-  npm run build
-
-  echo "♻️ Restart PM2..."
-  pm2 restart bakmie || pm2 start npm --name "bakmie" -- start
-
-  echo "💾 Save PM2..."
-  pm2 save
-
-  echo "✅ Deploy selesai!"
+            cd /home/ubuntu/bakmie-pos
+            git pull origin main
+            npm install
+            npx prisma generate
+            npm run build
+            pm2 restart bakmie || pm2 start npm --name bakmie -- start
+            pm2 save
