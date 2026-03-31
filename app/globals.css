@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --g: #1B4A3A;
+  --g2: #153C2E;
+  --g3: #0E2820;
+  --gold2: #E8B020;
+  --cream: #F5EDD8;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--g3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9CCB0;
+  border-radius: 4px;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Pulse animation for table needing payment */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 10px rgba(192, 40, 10, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(192, 40, 10, 0.7); }
+}
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+/* Bottom sheet slide up */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
