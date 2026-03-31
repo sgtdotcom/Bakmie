@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { MenuItem } from '@/types'
 import { formatRupiah } from '@/lib/utils'
 
@@ -15,7 +16,14 @@ export default function MenuCard({ item, onClick }: MenuCardProps) {
       {/* Image area */}
       <div className="h-16 bg-[#EDE0C4] flex items-center justify-center relative overflow-hidden shrink-0">
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            className="object-cover"
+            unoptimized
+            sizes="160px"
+          />
         ) : null}
         <span className="text-3xl relative z-10" style={{ opacity: item.imageUrl ? 0.15 : 1 }}>
           {item.emoji}

@@ -1,24 +1,44 @@
-name: 🚀 Deploy Bakmie POS
+name: 🚀 Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, master ]  # trigger saat push ke main atau master
 
 jobs:
   deploy:
+    name: Deploy ke VPS
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚀 Deploy ke VPS
-        uses: appleboy/ssh-action@v1.0.0
+      - name: 📥 Checkout kode terbaru
+        uses: actions/checkout@v4
+
+      - name: 🔑 SSH ke VPS dan deploy
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           script: |
-            cd ~/bakmie-pos
-            git pull origin main
-            npm install
+            set -e  # stop jika ada error
+
+            echo "📁 Masuk ke folder project..."
+            cd ${{ secrets.VPS_APP_PATH }}
+
+            echo "⬇️ Pull kode terbaru dari GitHub..."
+            git pull origin main || git pull origin master
+
+            echo "📦 Install dependencies baru (jika ada)..."
+            npm install --production=false
+
+            echo "🏗️ Build aplikasi Next.js..."
             npm run build
-            pm2 restart bakmie || pm2 start npm --name bakmie -- start
+
+            echo "♻️ Restart aplikasi dengan PM2..."
+            pm2 restart sektor-antapani || pm2 start npm --name "sektor-antapani" -- start
+
+            echo "💾 Simpan konfigurasi PM2..."
+            pm2 save
+
+            echo "✅ Deploy selesai!"

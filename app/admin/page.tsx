@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { useStore } from '@/store'
 import { useSearchParams } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
@@ -102,7 +103,9 @@ function MenuModal({ open, onClose, editing }: { open: boolean; onClose: () => v
             } ${imgPreview ? 'border-[#1B4A3A]' : 'border-[#D9CCB0]'}`}
           >
             {imgPreview && (
-              <img src={imgPreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              // next/image tidak support blob: URL (preview lokal sebelum upload ke server)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imgPreview} alt="Preview foto menu" className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className={`relative z-10 flex flex-col items-center gap-1 ${imgPreview ? 'bg-black/55 text-white rounded-xl px-4 py-2' : 'text-[#7A6E5A]'}`}>
               {uploading ? (
@@ -340,7 +343,16 @@ export default function AdminPage() {
                     onClick={() => setMenuModal({ open: true, item: m })}
                     title="Klik untuk edit foto"
                   >
-                    {m.imageUrl ? <img src={m.imageUrl} alt={m.name} className="absolute inset-0 w-full h-full object-cover" /> : null}
+                    {m.imageUrl ? (
+                      <Image
+                        src={m.imageUrl}
+                        alt={m.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        sizes="48px"
+                      />
+                    ) : null}
                     <span className="text-xl relative z-10" style={{ opacity: m.imageUrl ? 0.15 : 1 }}>{m.emoji}</span>
                   </div>
                   <div className="flex-1 min-w-0">
