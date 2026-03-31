@@ -2,7 +2,7 @@ script: |
   set -e
 
   echo "📁 Masuk ke folder project..."
-  cd ~/bakmie-pos
+  cd /home/ubuntu/bakmie-pos
 
   echo "⬇️ Pull kode terbaru dari GitHub..."
   git pull origin main || git pull origin master
