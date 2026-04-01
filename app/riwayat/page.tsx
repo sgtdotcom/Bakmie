@@ -12,7 +12,7 @@ export default function RiwayatPage() {
   const [selected, setSelected] = useState<Transaction | null>(null)
 
   return (
-    <AppShell showBack backLabel="Dashboard" backHref="/dashboard" allowedRoles={['admin', 'cashier']}>
+    <AppShell showBack backLabel="Dashboard" backHref="/dashboard" allowedRoles={['admin', 'cashier', 'superadmin']}>
       <div className="bg-[#1B4A3A] px-4 py-3 border-b-2 border-[#E8B020]/25 shrink-0">
         <h1 className="font-playfair text-base font-bold text-[#F5EDD8]">Riwayat Transaksi</h1>
         <p className="text-xs text-white/40 mt-0.5">

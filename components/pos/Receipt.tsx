@@ -40,7 +40,6 @@ export default function Receipt({ transaction: t }: ReceiptProps) {
 
       <div className="flex justify-between mb-1"><span>Subtotal</span><span>{formatRupiah(t.subtotal)}</span></div>
       {t.discount > 0 && <div className="flex justify-between mb-1"><span>Diskon</span><span>-{formatRupiah(t.discount)}</span></div>}
-      <div className="flex justify-between mb-1"><span>PPN 11%</span><span>{formatRupiah(t.tax)}</span></div>
       <div className="flex justify-between font-black text-sm text-[#1B4A3A] pt-1.5 border-t border-[#D9CCB0]">
         <span>TOTAL</span><span>{formatRupiah(t.total)}</span>
       </div>

@@ -37,9 +37,7 @@ export default function BayarPage() {
   if (!order?.items?.length || !table) return null
 
   const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0)
-  const discounted = Math.max(0, subtotal - discount)
-  const tax = Math.round(discounted * 0.11)
-  const total = discounted + tax
+  const total = Math.max(0, subtotal - discount)
   const change = Math.max(0, cash - total)
   const cashOk = method !== 'Tunai' || cash >= total
 
@@ -105,7 +103,6 @@ export default function BayarPage() {
               className="w-24 border border-[#D9CCB0] rounded-lg px-2 py-1 text-right text-sm bg-[#F5EDD8] outline-none focus:border-[#E8B020]"
             />
           </div>
-          <div className="flex justify-between text-sm text-[#7A6E5A] mb-3"><span>PPN 11%</span><span>{formatRupiah(tax)}</span></div>
           <div className="flex justify-between text-lg font-bold text-[#1A1208] border-t-2 border-[#F5EDD8] pt-3">
             <span>TOTAL</span>
             <span className="font-playfair text-xl text-[#1B4A3A]">{formatRupiah(total)}</span>

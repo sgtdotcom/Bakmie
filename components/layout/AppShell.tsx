@@ -16,14 +16,18 @@ interface AppShellProps {
 }
 
 const roleColors: Record<Role, string> = {
-  admin: 'bg-[#E8B020]/20 text-[#E8B020] border border-[#E8B020]/30',
-  cashier: 'bg-[#1B4A3A]/60 text-[#7ECDB0] border border-[#7ECDB0]/30',
-  waitress: 'bg-[#3A7A60]/40 text-[#A8DCC8] border border-[#A8DCC8]/30',
+  superadmin: 'bg-purple-900/40 text-purple-300 border border-purple-400/30',
+  admin:      'bg-[#E8B020]/20 text-[#E8B020] border border-[#E8B020]/30',
+  cashier:    'bg-[#1B4A3A]/60 text-[#7ECDB0] border border-[#7ECDB0]/30',
+  waitress:   'bg-[#3A7A60]/40 text-[#A8DCC8] border border-[#A8DCC8]/30',
+  dapur:      'bg-orange-900/40 text-orange-300 border border-orange-400/30',
 }
 const roleLabels: Record<Role, string> = {
-  admin: '👑 Admin',
-  cashier: '💰 Cashier',
-  waitress: '🍽️ Waitress',
+  superadmin: '🔐 Super Admin',
+  admin:      '👑 Admin',
+  cashier:    '💰 Cashier',
+  waitress:   '🍽️ Waitress',
+  dapur:      '👨‍🍳 Dapur',
 }
 
 export default function AppShell({ children, allowedRoles, showBack, backLabel = 'Dashboard', onBack, backHref }: AppShellProps) {

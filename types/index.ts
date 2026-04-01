@@ -1,4 +1,11 @@
-export type Role = 'admin' | 'cashier' | 'waitress'
+export type Role = 'superadmin' | 'admin' | 'cashier' | 'waitress' | 'dapur'
+
+export interface Category {
+  id: string
+  name: string
+  emoji: string
+  order: number
+}
 
 export interface User {
   id: number
@@ -43,13 +50,13 @@ export interface TableOrder {
 
 export interface Transaction {
   id: string
-  time: string
+  date: string        // YYYY-MM-DD untuk filter bulanan
+  time: string        // HH:MM untuk tampilan
   tableName: string
   items: { name: string; quantity: number; price: number; note: string }[]
   subtotal: number
   discount: number
-  tax: number
-  total: number
+  total: number       // tanpa PPN
   paymentMethod: string
   cashReceived: number
   change: number

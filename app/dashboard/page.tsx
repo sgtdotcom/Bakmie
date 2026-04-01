@@ -238,7 +238,7 @@ export default function DashboardPage() {
 
   if (!currentUser) return null
 
-  const isAdmin = currentUser.role === 'admin'
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin'
   const indoor = tables.filter(t => t.type === 'indoor')
   const others = tables.filter(t => t.type === 'other')
 
@@ -417,7 +417,8 @@ export default function DashboardPage() {
       {/* Bottom action bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0E2820] via-[#0E2820]/90 to-transparent pt-8 pb-4 px-3.5">
         <div className="flex gap-2">
-          {(currentUser.role === 'admin' || currentUser.role === 'cashier') && (
+          {/* Riwayat — semua kecuali waitress */}
+          {currentUser.role !== 'waitress' && (
             <button
               onClick={() => router.push('/riwayat')}
               className="flex-1 py-2.5 rounded-xl border border-[#E8B020]/30 text-[#E8B020] text-xs font-semibold hover:bg-[#E8B020]/10 transition-colors"
@@ -425,21 +426,41 @@ export default function DashboardPage() {
               📋 Riwayat
             </button>
           )}
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => router.push('/laporan')}
-                className="flex-1 py-2.5 rounded-xl bg-white/8 text-[#F5EDD8] text-xs font-semibold hover:bg-white/14 transition-colors"
-              >
-                📊 Laporan
-              </button>
-              <button
-                onClick={() => router.push('/admin')}
-                className="flex-1 py-2.5 rounded-xl bg-[#245E4A] text-[#F5EDD8] text-xs font-semibold hover:bg-[#3A7A60] transition-colors"
-              >
-                ⚙️ Admin
-              </button>
-            </>
+          {/* Laporan — admin & superadmin */}
+          {(currentUser.role === 'admin' || currentUser.role === 'superadmin') && (
+            <button
+              onClick={() => router.push('/laporan')}
+              className="flex-1 py-2.5 rounded-xl bg-white/8 text-[#F5EDD8] text-xs font-semibold hover:bg-white/14 transition-colors"
+            >
+              📊 Laporan
+            </button>
+          )}
+          {/* Admin panel — admin & superadmin */}
+          {(currentUser.role === 'admin' || currentUser.role === 'superadmin') && (
+            <button
+              onClick={() => router.push('/admin')}
+              className="flex-1 py-2.5 rounded-xl bg-[#245E4A] text-[#F5EDD8] text-xs font-semibold hover:bg-[#3A7A60] transition-colors"
+            >
+              ⚙️ Admin
+            </button>
+          )}
+          {/* Dapur monitor — admin & superadmin */}
+          {(currentUser.role === 'admin' || currentUser.role === 'superadmin') && (
+            <button
+              onClick={() => router.push('/dapur')}
+              className="flex-1 py-2.5 rounded-xl bg-orange-900/50 border border-orange-400/30 text-orange-200 text-xs font-semibold hover:bg-orange-900/70 transition-colors"
+            >
+              👨‍🍳 Dapur
+            </button>
+          )}
+          {/* Super Panel — superadmin only */}
+          {currentUser.role === 'superadmin' && (
+            <button
+              onClick={() => router.push('/superadmin')}
+              className="flex-1 py-2.5 rounded-xl bg-purple-900/60 border border-purple-400/30 text-purple-200 text-xs font-semibold hover:bg-purple-800/70 transition-colors"
+            >
+              🔐 Super
+            </button>
           )}
         </div>
       </div>

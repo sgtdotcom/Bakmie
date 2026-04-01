@@ -5,9 +5,11 @@ import { useStore } from '@/store'
 import { Role } from '@/types'
 
 const ROLES = [
-  { value: 'admin', label: '👑 Admin' },
-  { value: 'cashier', label: '💰 Cashier' },
-  { value: 'waitress', label: '🍽️ Waitress' },
+  { value: 'superadmin', label: '🔐 Super Admin' },
+  { value: 'admin',      label: '👑 Admin'        },
+  { value: 'cashier',    label: '💰 Cashier'      },
+  { value: 'waitress',   label: '🍽️ Waitress'    },
+  { value: 'dapur',      label: '👨‍🍳 Dapur'     },
 ]
 
 export default function LoginPage() {
@@ -21,24 +23,29 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (currentUser) router.replace('/dashboard')
+    if (!currentUser) return
+    if (currentUser.role === 'dapur') router.replace('/dapur')
+    else router.replace('/dashboard')
   }, [currentUser, router])
 
   const handleLogin = () => {
     if (!role) { setError(true); return }
     setLoading(true)
     setTimeout(() => {
-      const ok = login(username, password, role as Role)
-      if (ok) router.replace('/dashboard')
-      else { setError(true); setLoading(false) }
+      const ok = login(username.trim(), password, role as Role)
+      if (!ok) { setError(true); setLoading(false) }
+      // jika ok, useEffect di atas yang handle redirect
     }, 300)
   }
 
   return (
     <div className="fixed inset-0 bg-[#0E2820] flex flex-col items-center justify-center p-6 animate-fade-in">
+
       {/* Logo */}
-      <div className="w-18 h-18 rounded-2xl bg-[#E8B020] flex items-center justify-center mb-4 shadow-[0_8px_32px_rgba(232,176,32,0.35)]"
-        style={{ width: 72, height: 72 }}>
+      <div
+        className="rounded-2xl bg-[#E8B020] flex items-center justify-center mb-4 shadow-[0_8px_32px_rgba(232,176,32,0.35)]"
+        style={{ width: 72, height: 72 }}
+      >
         <span className="font-playfair font-black text-3xl text-[#0E2820]">SA</span>
       </div>
 
@@ -46,10 +53,13 @@ export default function LoginPage() {
         Warung Bakmie<br />
         <span className="text-[#F5C840]">"SEKTOR ANTAPANI"</span>
       </h1>
-      <p className="text-[11px] text-white/40 text-center mb-8">📍 Jl. Terusan Jakarta No.78A, Antapani</p>
+      <p className="text-[11px] text-white/40 text-center mb-8">
+        📍 Jl. Terusan Jakarta No.78A, Antapani
+      </p>
 
       {/* Card */}
       <div className="w-full max-w-sm bg-white/5 border border-[#E8B020]/20 rounded-2xl p-6 flex flex-col gap-4">
+
         {/* Role */}
         <div>
           <label className="block text-[11px] font-semibold text-[#E8B020] uppercase tracking-wider mb-1.5">
@@ -58,32 +68,38 @@ export default function LoginPage() {
           <select
             value={role}
             onChange={e => { setRole(e.target.value as Role); setError(false) }}
-            className="w-full bg-white/7 border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors appearance-none"
+            className="w-full border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors appearance-none"
             style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
           >
             <option value="" style={{ background: '#153C2E' }}>— Pilih Role —</option>
             {ROLES.map(r => (
-              <option key={r.value} value={r.value} style={{ background: '#153C2E' }}>{r.label}</option>
+              <option key={r.value} value={r.value} style={{ background: '#153C2E' }}>
+                {r.label}
+              </option>
             ))}
           </select>
         </div>
 
         {/* Username */}
         <div>
-          <label className="block text-[11px] font-semibold text-[#E8B020] uppercase tracking-wider mb-1.5">Username</label>
+          <label className="block text-[11px] font-semibold text-[#E8B020] uppercase tracking-wider mb-1.5">
+            Username
+          </label>
           <input
             value={username}
             onChange={e => { setUsername(e.target.value); setError(false) }}
             onKeyDown={e => e.key === 'Enter' && document.getElementById('passInput')?.focus()}
             placeholder="Masukkan username..."
-            className="w-full bg-white/7 border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors placeholder:text-white/30"
+            className="w-full border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors placeholder:text-white/30"
             style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
           />
         </div>
 
         {/* Password */}
         <div>
-          <label className="block text-[11px] font-semibold text-[#E8B020] uppercase tracking-wider mb-1.5">Password</label>
+          <label className="block text-[11px] font-semibold text-[#E8B020] uppercase tracking-wider mb-1.5">
+            Password
+          </label>
           <input
             id="passInput"
             type="password"
@@ -91,7 +107,7 @@ export default function LoginPage() {
             onChange={e => { setPassword(e.target.value); setError(false) }}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             placeholder="Masukkan password..."
-            className="w-full bg-white/7 border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors placeholder:text-white/30"
+            className="w-full border border-[#E8B020]/25 rounded-xl px-3 py-2.5 text-sm font-medium text-[#F5EDD8] outline-none focus:border-[#E8B020] transition-colors placeholder:text-white/30"
             style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
           />
         </div>
@@ -113,8 +129,9 @@ export default function LoginPage() {
         </button>
       </div>
 
-      <p className="mt-5 text-[11px] text-white/25 text-center">
-        Demo: admin/admin123 · cashier1/cash123 · waitress1/wait123
+      <p className="mt-5 text-[10px] text-white/20 text-center leading-relaxed">
+        superadmin/super123 · admin/admin123<br />
+        cashier1/cash123 · waitress1/wait123 · dapur1/dapur123
       </p>
     </div>
   )

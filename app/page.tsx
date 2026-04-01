@@ -8,8 +8,9 @@ export default function Root() {
   const currentUser = useStore(s => s.currentUser)
 
   useEffect(() => {
-    if (currentUser) router.replace('/dashboard')
-    else router.replace('/login')
+    if (!currentUser) { router.replace('/login'); return }
+    if (currentUser.role === 'dapur') router.replace('/dapur')
+    else router.replace('/dashboard')
   }, [currentUser, router])
 
   return (

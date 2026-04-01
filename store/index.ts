@@ -52,7 +52,7 @@ interface AppState {
   clearDraft: () => void
 
   // Order ops
-  confirmOrder: () => OrderItem[]  // returns items sent to kitchen
+  confirmOrder: () => OrderItem[]
   cancelTableOrder: (tableId: string) => void
 
   // Payment
@@ -62,6 +62,10 @@ interface AppState {
     paymentMethod: string,
     cashReceived: number
   ) => Transaction | null
+
+  // Superadmin ops
+  clearAllTransactions: () => void
+  resetAllData: () => void
 }
 
 export const useStore = create<AppState>()(
@@ -75,7 +79,7 @@ export const useStore = create<AppState>()(
       tableOrders: {},
       draft: [],
       activeTableId: '',
-      userCounter: 4,
+      userCounter: 6,
       menuCounter: 54,
       tableCounter: 10,
       txCounter: 1,
@@ -146,7 +150,7 @@ export const useStore = create<AppState>()(
             price: item.price,
             quantity: 1,
             note: '',
-          }]
+          }],
         }
       }),
 
@@ -169,20 +173,27 @@ export const useStore = create<AppState>()(
         const { draft, activeTableId, tableOrders } = get()
         if (!draft.length || !activeTableId) return []
 
-        const existing = tableOrders[activeTableId] || { tableId: activeTableId, items: [], isOrdered: false }
+        const existing = tableOrders[activeTableId] || {
+          tableId: activeTableId,
+          items: [],
+          isOrdered: false,
+        }
         const merged = [...existing.items]
 
         draft.forEach(d => {
           const idx = merged.findIndex(m => m.menuId === d.menuId && m.note === d.note)
-          if (idx >= 0) merged[idx] = { ...merged[idx], quantity: merged[idx].quantity + d.quantity }
-          else merged.push({ ...d })
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], quantity: merged[idx].quantity + d.quantity }
+          } else {
+            merged.push({ ...d })
+          }
         })
 
         const sentItems = [...draft]
         set(s => ({
           tableOrders: {
             ...s.tableOrders,
-            [activeTableId]: { tableId: activeTableId, items: merged, isOrdered: true }
+            [activeTableId]: { tableId: activeTableId, items: merged, isOrdered: true },
           },
           draft: [],
         }))
@@ -195,7 +206,7 @@ export const useStore = create<AppState>()(
         return { tableOrders: newOrders }
       }),
 
-      // ── PAYMENT ──
+      // ── PAYMENT (tanpa PPN) ──
       processPayment: (tableId, discount, paymentMethod, cashReceived) => {
         const { tableOrders, tables, currentUser, txCounter } = get()
         const order = tableOrders[tableId]
@@ -203,20 +214,25 @@ export const useStore = create<AppState>()(
 
         const table = tables.find(t => t.id === tableId)
         const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0)
-        const discounted = Math.max(0, subtotal - discount)
-        const tax = Math.round(discounted * 0.11)
-        const total = discounted + tax
+        const total = Math.max(0, subtotal - discount)
 
         if (paymentMethod === 'Tunai' && cashReceived < total) return null
 
+        const now = new Date()
         const trx: Transaction = {
           id: 'TRX' + String(txCounter).padStart(3, '0'),
-          time: formatTime(new Date()),
+          date: now.toISOString().slice(0, 10), // YYYY-MM-DD
+          time: formatTime(now),
           tableName: table?.name || tableId,
           items: order.items.map(i => ({
-            name: i.name, quantity: i.quantity, price: i.price, note: i.note
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+            note: i.note,
           })),
-          subtotal, discount, tax, total,
+          subtotal,
+          discount,
+          total,
           paymentMethod,
           cashReceived: paymentMethod === 'Tunai' ? cashReceived : 0,
           change: paymentMethod === 'Tunai' ? Math.max(0, cashReceived - total) : 0,
@@ -235,9 +251,42 @@ export const useStore = create<AppState>()(
 
         return trx
       },
+
+      // ── SUPERADMIN ──
+      clearAllTransactions: () => set({
+        transactions: [],
+        txCounter: 1,
+      }),
+
+      resetAllData: () => set({
+        transactions: [],
+        tableOrders: {},
+        txCounter: 1,
+        menu: INITIAL_MENU,
+        tables: INITIAL_TABLES,
+        menuCounter: 54,
+        tableCounter: 10,
+      }),
     }),
     {
       name: 'sektor-antapani-pos',
+      version: 2,  // naikkan versi agar localStorage lama di-migrate
+      migrate: (persistedState: any, version: number) => {
+        // Jika versi lama, pastikan semua INITIAL_USERS ada
+        if (version < 2) {
+          const state = persistedState as AppState
+          const existingUsernames = state.users?.map((u: User) => u.username) || []
+          const missingUsers = INITIAL_USERS.filter(
+            u => !existingUsernames.includes(u.username)
+          )
+          return {
+            ...state,
+            users: [...(state.users || []), ...missingUsers],
+            userCounter: Math.max(state.userCounter || 1, 7),
+          }
+        }
+        return persistedState
+      },
       partialize: (s) => ({
         users: s.users,
         tables: s.tables,

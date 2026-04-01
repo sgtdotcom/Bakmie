@@ -68,7 +68,7 @@ function MenuModal({ open, onClose, editing }: { open: boolean; onClose: () => v
         category: form.category || 'Menu Utama',
         price: Number(form.price),
         emoji: form.emoji || '🍜',
-        imageUrl: finalImageUrl,
+        imageUrl: finalImageUrl,   // ← pakai finalImageUrl, bukan form.imageUrl
         description: form.description || '',
         badge: (form.badge || '') as any,
       }
@@ -271,6 +271,7 @@ function UserModal({ open, onClose, editing, editIdx }: { open: boolean; onClose
           <select value={role} onChange={e => setRole(e.target.value as Role)} className="w-full border border-[#D9CCB0] rounded-lg px-3 py-2 text-sm bg-[#F5EDD8] outline-none focus:border-[#1B4A3A]">
             <option value="cashier">💰 Cashier</option>
             <option value="waitress">🍽️ Waitress</option>
+            <option value="dapur">👨‍🍳 Dapur</option>
             <option value="admin">👑 Admin</option>
           </select>
         </div>
@@ -307,7 +308,7 @@ export default function AdminPage() {
   ]
 
   return (
-    <AppShell showBack backLabel="Dashboard" backHref="/dashboard" allowedRoles={['admin']}>
+    <AppShell showBack backLabel="Dashboard" backHref="/dashboard" allowedRoles={['admin', 'superadmin']}>
       <Toast />
 
       {/* Tabs */}
@@ -419,11 +420,11 @@ export default function AdminPage() {
               {users.map((u, i) => (
                 <div key={u.id} className="bg-white rounded-xl px-4 py-3 shadow-sm flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#EDE0C4] flex items-center justify-center text-lg shrink-0">
-                    {{ admin: '👑', cashier: '💰', waitress: '🍽️' }[u.role]}
+                    {{ admin: '👑', cashier: '💰', waitress: '🍽️', superadmin: '🔐', dapur: '👨‍🍳' }[u.role]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-[#1A1208]">{u.name} <span className="text-xs text-[#7A6E5A]">({u.username})</span></div>
-                    <div className="text-xs text-[#7A6E5A]">{{ admin: 'Administrator', cashier: 'Kasir', waitress: 'Pelayan' }[u.role]}</div>
+                    <div className="text-xs text-[#7A6E5A]">{{ admin: 'Administrator', cashier: 'Kasir', waitress: 'Pelayan', superadmin: 'Super Admin', dapur: 'Tim Dapur' }[u.role]}</div>
                   </div>
                   <div className="flex gap-1.5">
                     <button onClick={() => setUserModal({ open: true, user: u, idx: i })} className="p-1.5 border border-[#EDE0C4] rounded-lg text-[#7A6E5A] hover:border-[#1B4A3A] hover:text-[#1B4A3A] transition-colors">
