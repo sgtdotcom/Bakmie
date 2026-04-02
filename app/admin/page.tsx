@@ -286,7 +286,7 @@ function UserModal({ open, onClose, editing, editIdx }: { open: boolean; onClose
 
 /* ─── MAIN PAGE ─── */
 export default function AdminPage() {
-  const { menu, tables, users, deleteMenuItem, deleteTable, deleteUser } = useStore()
+  const { menu, tables, users, currentUser, deleteMenuItem, deleteTable, deleteUser } = useStore()
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get('tab') as AdminTab) || 'menu'
   const [tab, setTab] = useState<AdminTab>(initialTab)
@@ -413,9 +413,19 @@ export default function AdminPage() {
         {/* ── USERS TAB ── */}
         {tab === 'users' && (
           <>
-            <button onClick={() => setUserModal({ open: true, user: null, idx: -1 })} className="flex items-center gap-1.5 px-3 py-2 bg-[#1B4A3A] text-white text-xs font-bold rounded-xl hover:bg-[#153C2E] self-start">
-              <Plus size={14} /> Tambah User
-            </button>
+            {/* Tombol tambah user — hanya superadmin */}
+            {currentUser?.role === 'superadmin' ? (
+              <button
+                onClick={() => setUserModal({ open: true, user: null, idx: -1 })}
+                className="flex items-center gap-1.5 px-3 py-2 bg-[#1B4A3A] text-white text-xs font-bold rounded-xl hover:bg-[#153C2E] self-start"
+              >
+                <Plus size={14} /> Tambah User
+              </button>
+            ) : (
+              <div className="text-xs text-[#7A6E5A] bg-[#F5EDD8] rounded-xl px-3 py-2.5 border border-[#EDE0C4]">
+                🔒 Kelola user hanya bisa dilakukan oleh <strong>Super Admin</strong>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               {users.map((u, i) => (
                 <div key={u.id} className="bg-white rounded-xl px-4 py-3 shadow-sm flex items-center gap-3">
@@ -427,14 +437,17 @@ export default function AdminPage() {
                     <div className="text-xs text-[#7A6E5A]">{{ admin: 'Administrator', cashier: 'Kasir', waitress: 'Pelayan', superadmin: 'Super Admin', dapur: 'Tim Dapur' }[u.role]}</div>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => setUserModal({ open: true, user: u, idx: i })} className="p-1.5 border border-[#EDE0C4] rounded-lg text-[#7A6E5A] hover:border-[#1B4A3A] hover:text-[#1B4A3A] transition-colors">
-                      <Pencil size={13} />
-                    </button>
-                    {u.username !== 'admin' && (
+                    {currentUser?.role === 'superadmin' && (
+                      <button onClick={() => setUserModal({ open: true, user: u, idx: i })} className="p-1.5 border border-[#EDE0C4] rounded-lg text-[#7A6E5A] hover:border-[#1B4A3A] hover:text-[#1B4A3A] transition-colors">
+                        <Pencil size={13} />
+                      </button>
+                    )}
+                    {currentUser?.role === 'superadmin' && u.username !== 'superadmin' && (
                       <button onClick={() => { if (confirm('Hapus user ini?')) { deleteUser(u.id); showToast('🗑 User dihapus') } }} className="p-1.5 border border-[#EDE0C4] rounded-lg text-[#7A6E5A] hover:border-red-400 hover:text-red-500 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     )}
+                  </div>
                   </div>
                 </div>
               ))}

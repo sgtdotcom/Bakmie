@@ -13,12 +13,14 @@ import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react'
 function TableCard({
   table,
   isAdmin,
+  showPrice,
   onClick,
   onEdit,
   onDelete,
 }: {
   table: Table
   isAdmin: boolean
+  showPrice: boolean
   onClick: () => void
   onEdit: () => void
   onDelete: () => void
@@ -51,7 +53,7 @@ function TableCard({
         }`}>
           {isActive ? 'Ada Pesanan' : 'Kosong'}
         </span>
-        {isActive && (
+        {isActive && showPrice && (
           <span className="text-[10px] text-white/65 font-semibold">{formatRupiah(total)}</span>
         )}
       </div>
@@ -83,12 +85,14 @@ function TableCard({
 function OtherBtn({
   table,
   isAdmin,
+  showPrice,
   onClick,
   onEdit,
   onDelete,
 }: {
   table: Table
   isAdmin: boolean
+  showPrice: boolean
   onClick: () => void
   onEdit: () => void
   onDelete: () => void
@@ -110,7 +114,11 @@ function OtherBtn({
       <button onClick={onClick} className="flex-1 min-w-0 text-left">
         <div className="text-sm font-semibold text-[#F5EDD8]">{table.name}</div>
         <div className="text-xs text-white/45 mt-0.5">
-          {isActive ? `${formatRupiah(total)} · ${itemCount} item` : 'Belum ada pesanan'}
+          {isActive
+            ? showPrice
+              ? `${formatRupiah(total)} · ${itemCount} item`
+              : `${itemCount} item`
+            : 'Belum ada pesanan'}
         </div>
       </button>
       {isActive && (
@@ -239,6 +247,8 @@ export default function DashboardPage() {
   if (!currentUser) return null
 
   const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin'
+  // Harga hanya tampil untuk admin, superadmin, cashier — tidak untuk waitress & dapur
+  const showPrice = ['admin', 'superadmin', 'cashier'].includes(currentUser.role)
   const indoor = tables.filter(t => t.type === 'indoor')
   const others = tables.filter(t => t.type === 'other')
 
@@ -334,6 +344,7 @@ export default function DashboardPage() {
                 key={t.id}
                 table={t}
                 isAdmin={isAdmin}
+                showPrice={showPrice}
                 onClick={() => handleTableClick(t.id)}
                 onEdit={() => setMejaModal({ open: true, item: t })}
                 onDelete={() => handleDeleteTable(t.id, t.name)}
@@ -374,6 +385,7 @@ export default function DashboardPage() {
                 key={t.id}
                 table={t}
                 isAdmin={isAdmin}
+                showPrice={showPrice}
                 onClick={() => handleTableClick(t.id)}
                 onEdit={() => setMejaModal({ open: true, item: t })}
                 onDelete={() => handleDeleteTable(t.id, t.name)}

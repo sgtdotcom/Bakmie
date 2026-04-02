@@ -1,63 +1,69 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useStore } from '@/store'
-import { formatRupiah } from '@/lib/utils'
-import Clock from '@/components/ui/Clock'
-import { LogOut, ChefHat, RefreshCw, CheckCircle } from 'lucide-react'
+import { LogOut, ChefHat, CheckCircle, Bell } from 'lucide-react'
 
-// Komponen satu kartu pesanan per meja
+// ─── Item card per meja ───
 function OrderCard({
   tableId,
   tableName,
   items,
+  arrivedAt,
   onDone,
 }: {
   tableId: string
   tableName: string
-  items: { name: string; quantity: number; price: number; note: string }[]
+  items: { name: string; quantity: number; note: string }[]
+  arrivedAt: string
   onDone: (tableId: string) => void
 }) {
-  const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
-  const [done, setDone] = useState(false)
+  const [marking, setMarking] = useState(false)
+  const totalItems = items.reduce((s, i) => s + i.quantity, 0)
+
+  const handleDone = () => {
+    setMarking(true)
+    setTimeout(() => onDone(tableId), 600)
+  }
 
   return (
-    <div
-      className={`rounded-2xl border-2 flex flex-col overflow-hidden shadow-lg transition-all duration-300 ${
-        done
-          ? 'border-green-500 bg-green-900/30 opacity-70'
-          : 'border-[#E8B020]/60 bg-[#1B4A3A]/70'
-      }`}
-    >
-      {/* Header */}
-      <div className={`px-4 py-3 flex items-center justify-between ${done ? 'bg-green-800/40' : 'bg-[#153C2E]'}`}>
+    <div className={`rounded-2xl border-2 flex flex-col overflow-hidden shadow-xl transition-all duration-500 ${
+      marking
+        ? 'border-green-500/80 opacity-60 scale-95'
+        : 'border-[#E8B020]/70 bg-[#1B4A3A]/80'
+    }`}>
+      {/* Header meja */}
+      <div className="px-4 py-3 flex items-center justify-between bg-[#0E2820] border-b border-[#E8B020]/25">
         <div className="flex items-center gap-2.5">
-          <span className="text-2xl">{done ? '✅' : '🍽️'}</span>
+          <div className="w-9 h-9 rounded-xl bg-[#E8B020] flex items-center justify-center shrink-0">
+            <span className="text-lg font-black text-[#0E2820]">🍽️</span>
+          </div>
           <div>
             <div className="font-playfair text-base font-bold text-[#F5EDD8]">{tableName}</div>
-            <div className="text-[10px] text-white/50 mt-0.5">{items.length} jenis · {items.reduce((s,i)=>s+i.quantity,0)} item</div>
+            <div className="text-[10px] text-white/45 mt-0.5">
+              {totalItems} item · masuk {arrivedAt}
+            </div>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-xs font-bold text-[#E8B020]">{formatRupiah(total)}</div>
-          <div className="text-[10px] text-white/40 mt-0.5">{new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</div>
+        {/* Indikator baru */}
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-[#E8B020] animate-pulse" />
+          <span className="text-[10px] text-[#E8B020] font-semibold">BARU</span>
         </div>
       </div>
 
-      {/* Items */}
-      <div className="flex-1 px-4 py-3 space-y-2.5">
+      {/* Daftar item */}
+      <div className="px-4 py-4 space-y-3 flex-1">
         {items.map((item, i) => (
           <div key={i} className="flex items-start gap-3">
-            {/* Quantity badge */}
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black shrink-0 ${
-              done ? 'bg-green-700 text-green-100' : 'bg-[#E8B020] text-[#0E2820]'
-            }`}>
-              {item.quantity}×
+            {/* Badge jumlah */}
+            <div className="min-w-[36px] h-9 rounded-xl bg-[#E8B020] flex items-center justify-center shrink-0">
+              <span className="text-sm font-black text-[#0E2820]">{item.quantity}×</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-[#F5EDD8] leading-tight">{item.name}</div>
+            <div className="flex-1 min-w-0 pt-1">
+              <div className="text-sm font-bold text-[#F5EDD8] leading-tight">{item.name}</div>
               {item.note && (
-                <div className="mt-1 text-[11px] text-[#E8B020] italic bg-black/20 rounded-lg px-2 py-1 leading-tight">
+                <div className="mt-1.5 text-[11px] italic text-[#E8B020] bg-black/25 rounded-lg px-2.5 py-1.5 leading-tight border border-[#E8B020]/20">
                   📝 {item.note}
                 </div>
               )}
@@ -66,107 +72,125 @@ function OrderCard({
         ))}
       </div>
 
-      {/* Action button */}
-      <div className="px-4 pb-4 pt-1">
-        {done ? (
-          <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-700/60 text-green-100 text-sm font-semibold">
-            <CheckCircle size={15} />
-            Sudah Diproses
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              setDone(true)
-              setTimeout(() => onDone(tableId), 1200)
-            }}
-            className="w-full py-2.5 rounded-xl bg-[#E8B020] hover:bg-[#F5C840] text-[#0E2820] text-sm font-bold transition-colors flex items-center justify-center gap-2"
-          >
-            <CheckCircle size={15} />
-            Tandai Selesai Dimasak
-          </button>
-        )}
+      {/* Tombol selesai */}
+      <div className="px-4 pb-4">
+        <button
+          onClick={handleDone}
+          disabled={marking}
+          className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <CheckCircle size={16} />
+          {marking ? 'Ditandai...' : 'Selesai Dimasak ✓'}
+        </button>
       </div>
     </div>
   )
 }
 
+// ─── Main page ───
 export default function DapurPage() {
   const router = useRouter()
   const { currentUser, logout, tables, tableOrders, cancelTableOrder } = useStore()
-  const [lastRefresh, setLastRefresh] = useState(new Date())
+  // Simpan waktu masuk per tableId (deteksi pesanan baru)
+  const [arrivals, setArrivals] = useState<Record<string, string>>({})
+  const [tick, setTick] = useState(0)  // force re-render
+  const prevOrderIds = useRef<Set<string>>(new Set())
 
+  // Guard: hanya role yang boleh akses
   useEffect(() => {
     if (!currentUser) { router.replace('/login'); return }
-    // Hanya role dapur, admin, superadmin yang boleh akses
-    if (!['dapur','admin','superadmin'].includes(currentUser.role)) {
+    if (!['dapur', 'admin', 'superadmin'].includes(currentUser.role)) {
       router.replace('/dashboard')
     }
   }, [currentUser, router])
 
-  // Auto refresh setiap 30 detik
+  // ─── Real-time polling: cek setiap 3 detik ───
+  // Zustand store sudah reaktif — tapi untuk visual "kapan pesanan masuk" kita track sendiri
   useEffect(() => {
-    const interval = setInterval(() => setLastRefresh(new Date()), 30000)
+    const interval = setInterval(() => {
+      setTick(t => t + 1)
+    }, 3000)
     return () => clearInterval(interval)
   }, [])
 
+  // Deteksi pesanan baru → catat waktu masuk
+  useEffect(() => {
+    const currentIds = new Set(
+      Object.keys(tableOrders).filter(id =>
+        tableOrders[id]?.isOrdered && (tableOrders[id]?.items?.length ?? 0) > 0
+      )
+    )
+
+    currentIds.forEach(id => {
+      if (!prevOrderIds.current.has(id)) {
+        // Pesanan baru!
+        setArrivals(prev => ({
+          ...prev,
+          [id]: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        }))
+        // Notif visual (title blink)
+        document.title = '🔔 Pesanan Baru! — Dapur SA'
+        setTimeout(() => { document.title = 'Dapur — Sektor Antapani' }, 3000)
+      }
+    })
+
+    prevOrderIds.current = currentIds
+  }, [tableOrders, tick])
+
   if (!currentUser) return null
 
-  // Ambil semua meja yang punya pesanan aktif
   const activeOrders = Object.entries(tableOrders)
-    .filter(([, order]) => order.isOrdered && order.items.length > 0)
+    .filter(([, o]) => o?.isOrdered && (o?.items?.length ?? 0) > 0)
     .map(([tableId, order]) => {
       const table = tables.find(t => t.id === tableId)
       return {
         tableId,
         tableName: table?.name || tableId,
-        items: order.items.map(i => ({
-          name: i.name,
-          quantity: i.quantity,
-          price: i.price,
-          note: i.note,
-        })),
+        items: order.items.map(i => ({ name: i.name, quantity: i.quantity, note: i.note })),
+        arrivedAt: arrivals[tableId] || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       }
     })
     .sort((a, b) => a.tableName.localeCompare(b.tableName))
 
+  const handleDone = useCallback((tableId: string) => {
+    cancelTableOrder(tableId)
+    setArrivals(prev => { const n = { ...prev }; delete n[tableId]; return n })
+  }, [cancelTableOrder])
+
   const handleLogout = () => { logout(); router.replace('/login') }
 
-  const handleDone = (tableId: string) => {
-    // Tandai pesanan sudah selesai dimasak — hapus dari antrian dapur
-    // Meja tetap aktif untuk proses pembayaran oleh kasir
-    // Di sini kita hanya menghapus flag isOrdered agar tidak muncul lagi di dapur
-    // Tapi data order tetap ada untuk kasir
-    cancelTableOrder(tableId)
-  }
-
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: '#0A1F17' }}>
+    <div className="fixed inset-0 flex flex-col" style={{ background: '#071510' }}>
 
       {/* Header */}
-      <div className="shrink-0 px-4 py-3 flex items-center justify-between border-b-2 border-[#E8B020]/30"
+      <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b-2 border-[#E8B020]/30"
         style={{ background: '#0E2820' }}>
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-[#E8B020] flex items-center justify-center">
-            <ChefHat size={18} className="text-[#0E2820]" />
+            <ChefHat size={17} className="text-[#0E2820]" />
           </div>
           <div>
             <div className="font-playfair text-sm font-bold text-[#F5EDD8]">
-              Dapur — <span className="text-[#F5C840]">Sektor Antapani</span>
+              DAPUR — <span className="text-[#F5C840]">Sektor Antapani</span>
             </div>
-            <div className="text-[10px] text-white/40">
-              {currentUser.name} · {activeOrders.length} meja aktif
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-[10px] text-green-400 font-medium">Live · update otomatis</span>
             </div>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <Clock />
-          <button
-            onClick={() => setLastRefresh(new Date())}
-            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw size={14} />
-          </button>
+          {/* Badge jumlah pesanan */}
+          {activeOrders.length > 0 && (
+            <div className="flex items-center gap-1.5 bg-[#E8B020]/20 border border-[#E8B020]/40 rounded-xl px-3 py-1.5">
+              <Bell size={12} className="text-[#E8B020]" />
+              <span className="text-xs font-bold text-[#E8B020]">{activeOrders.length} meja</span>
+            </div>
+          )}
+          {/* Jam */}
+          <div className="text-xs font-bold text-[#F5C840] tabular-nums hidden sm:block" id="dapurClock" />
+          {/* Tombol dashboard (admin/superadmin saja) */}
           {currentUser.role !== 'dapur' && (
             <button
               onClick={() => router.push('/dashboard')}
@@ -177,8 +201,8 @@ export default function DapurPage() {
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 p-2 rounded-lg bg-white/5 hover:bg-red-900/40 text-white/60 hover:text-white transition-colors"
             title="Keluar"
+            className="p-2 rounded-lg bg-white/5 hover:bg-red-900/40 text-white/50 hover:text-white transition-colors"
           >
             <LogOut size={14} />
           </button>
@@ -188,62 +212,58 @@ export default function DapurPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-3">
         {activeOrders.length === 0 ? (
-          // Empty state
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
-            <div className="text-7xl mb-5 opacity-30">🍳</div>
-            <div className="font-playfair text-xl font-bold text-white/40 mb-2">Tidak Ada Pesanan</div>
-            <div className="text-sm text-white/25 max-w-xs leading-relaxed">
-              Belum ada pesanan masuk dari meja manapun saat ini.
-              Halaman akan otomatis update setiap 30 detik.
+            <div className="text-7xl mb-5 opacity-20">🍳</div>
+            <div className="font-playfair text-xl font-bold text-white/30 mb-2">Tidak Ada Pesanan</div>
+            <div className="text-sm text-white/20 max-w-xs leading-relaxed">
+              Belum ada pesanan masuk. Halaman ini otomatis update setiap pesanan baru masuk.
             </div>
-            <div className="mt-6 text-[11px] text-white/20">
-              Terakhir refresh: {lastRefresh.toLocaleTimeString('id-ID')}
+            <div className="mt-8 flex items-center gap-2 text-white/20 text-xs">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Sedang menunggu pesanan...
             </div>
           </div>
         ) : (
-          <>
-            {/* Summary bar */}
-            <div className="flex items-center gap-3 mb-3 px-1">
-              <div className="flex items-center gap-2 text-[#E8B020]">
-                <div className="w-2 h-2 rounded-full bg-[#E8B020] animate-pulse" />
-                <span className="text-xs font-semibold">
-                  {activeOrders.length} pesanan aktif
-                </span>
-              </div>
-              <span className="text-white/20 text-xs">·</span>
-              <span className="text-xs text-white/30">
-                Total {activeOrders.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.quantity,0),0)} item
-              </span>
-              <div className="ml-auto text-[10px] text-white/20">
-                {lastRefresh.toLocaleTimeString('id-ID')}
-              </div>
-            </div>
-
-            {/* Order cards grid */}
-            <div className="grid gap-3" style={{
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            }}>
-              {activeOrders.map(order => (
-                <OrderCard
-                  key={order.tableId}
-                  tableId={order.tableId}
-                  tableName={order.tableName}
-                  items={order.items}
-                  onDone={handleDone}
-                />
-              ))}
-            </div>
-          </>
+          <div className="grid gap-3" style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+          }}>
+            {activeOrders.map(order => (
+              <OrderCard
+                key={order.tableId}
+                {...order}
+                onDone={handleDone}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Footer info */}
+      {/* Footer */}
       <div className="shrink-0 px-4 py-2 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[10px] text-white/20">Auto-refresh setiap 30 detik</span>
+        <div className="flex items-center gap-2 text-[10px] text-white/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+          Real-time · tidak perlu refresh manual
+        </div>
         <span className="text-[10px] text-white/20">
-          {new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long' })}
+          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
         </span>
       </div>
+
+      {/* Clock updater (client-side only) */}
+      <ClockUpdater />
     </div>
   )
+}
+
+function ClockUpdater() {
+  useEffect(() => {
+    const update = () => {
+      const el = document.getElementById('dapurClock')
+      if (el) el.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    }
+    update()
+    const id = setInterval(update, 1000)
+    return () => clearInterval(id)
+  }, [])
+  return null
 }
